@@ -1,0 +1,81 @@
+{%  extends "base.html" %}
+
+{% block main %}
+
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Prediction Results</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h5>Prediction Input:</h5>
+                <div>Passenger Class (1, 2 or 3): <span id="pc"></span></div>
+                <div>Age: <span id="age"></span></div>
+                <div>Sex (boy 1, man 2, girl 3, woman 4): <span id="as"></span></div>
+                <h5 class="pt-3">Prediction Classification:</h5>
+                <div id="prediction"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <a class="btn btn-primary" href="/results" role="button">View DB</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pt-5">
+    <div class="row justify-content-md-center">
+        <div class="col-md-4">
+            <h1>Titanic Prediction</h1>
+            <form action="" id="post-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="Pclass">Passenger Class (1, 2 or 3)</label>
+                    <input type="number" step="0.1" class="form-control" id="Pclass" placeholder="" required>
+                </div>
+                <div class="form-group">
+                    <label for="Age">Age</label>
+                    <input type="number" step="0.1" class="form-control" id="Age" placeholder="" required>
+                </div>
+                <div class="form-group">
+                    <label for="Age_Sex">Sex (boy 1, man 2, girl 3, woman 4)</label>
+                    <input type="number" step="0.1" class="form-control" id="Age_Sex" placeholder="" required>
+                </div>
+                <button type="submit" value="Submit" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).on('submit', '#post-form',function(e){
+        e.preventDefault();
+        $.ajax({
+            type:'POST',
+            url:'{% url "predict:submit_prediction" %}',
+            data:{
+                Pclass:$('#Pclass').val(),
+                Age:$('#Age').val(),
+                Age_Sex:$('#Age_Sex').val(),
+                csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+                action: 'post'
+            },
+            success:function(json) {
+                document.forms["post-form"].reset();
+                document.getElementById("prediction").innerHTML = json['result']
+                document.getElementById("pc").innerHTML = json['Pclass']
+                document.getElementById("age").innerHTML = json['Age']
+                document.getElementById("as").innerHTML = json['Age_Sex']
+            },
+            error : function(xhr,errmsg,err) {
+
+            }
+        });
+    })
+</script>
+
+{% endblock %}
